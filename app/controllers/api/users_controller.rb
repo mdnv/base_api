@@ -1,5 +1,6 @@
 class Api::UsersController < Api::BaseController
   before_action :ensure_params_exist
+  before_action :authenticate_user_from_token, only: :update_profile
 
   respond_to :json
 
@@ -18,9 +19,20 @@ class Api::UsersController < Api::BaseController
     end
   end
 
+  def update_profile
+    unless @current_user.update_attributes user_params
+      render json: { status: "false", message: @current_user.errors.full_messages.uniq }, status: 422
+    end
+  end
+
   private
 
   def user_params
-    params.require(:user).permit :email, :password, :password_confirmation
+    params.require(:user).permit :email, :password, :password_confirmation, profile_attributes: [:id, :avatar, :phone, :gender, :birthday]
+  end
+
+  def ensure_params_exist
+    return if params[:user].present?
+    render json: {status: "false", message: "Missing params"}, status: 422
   end
 end

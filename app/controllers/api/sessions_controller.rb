@@ -14,9 +14,9 @@ class Api::SessionsController < Api::BaseController
       )
 
       render json: {status: "true", message: "Signed in successfully", user: @user}, status: 200
-      return
+    else
+      render json: {status: "false", message: "Error with your login or password"}, status: 401
     end
-    invalid_login_attempt
   end
 
   def destroy
@@ -34,7 +34,8 @@ class Api::SessionsController < Api::BaseController
     params.require(:user).permit :email, :password
   end
 
-  def invalid_login_attempt
-    render json: {status: "false", message: "Error with your login or password"}, status: 401
+  def ensure_params_exist
+    return if params[:user].present?
+    render json: {status: "false", message: "Missing params"}, status: 422
   end
 end
